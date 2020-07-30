@@ -245,6 +245,22 @@ class SendingMailNotificationsTest extends TestCase
 
         $user->notify($notification);
     }
+
+    public function testMailIsSentUsingMailMessageWithPlain()
+    {
+        $notification = new TestMailNotificationWithPlain;
+        $notification->id = Str::uuid()->toString();
+
+        $user = NotifiableUser::forceCreate([
+            'email' => 'taylor@laravel.com',
+        ]);
+
+        $this->mailer->shouldReceive('send')->once()->with(
+            ['html' => 'htmlContent', 'text' => 'textContent']
+        );
+
+        $user->notify($notification);
+    }
 }
 
 class NotifiableUser extends Model
@@ -326,5 +342,20 @@ class TestMailNotificationWithMailable extends Notification
         $mailable->shouldReceive('send')->once();
 
         return $mailable;
+    }
+}
+
+class TestMailNotificationWithPlain extends Notification
+{
+    public function via($notifiable)
+    {
+        return [MailChannel::class];
+    }
+
+    public function toMail($notifiable)
+    {
+        return (new MailMessage)
+            ->view('html', ['foo_html' => 'bar_html'])
+            ->text('plain', ['foo_plain' => 'bar_plain']);
     }
 }
