@@ -691,6 +691,23 @@ class HttpRequestTest extends TestCase
         $this->assertEquals($payload, $data);
     }
 
+    public function testNestedJSONMethod()
+    {
+        $payload = [
+            'name' => [
+                'firstname' => 'taylor',
+                'lastname' => 'otwell',
+            ],
+        ];
+        $request = Request::create('/', 'GET', [], [], [], ['CONTENT_TYPE' => 'application/json'], json_encode($payload));
+        $this->assertSame('taylor', $request->json('name.firstname'));
+        $this->assertSame('otwell', $request->json('name.lastname'));
+        $this->assertSame('taylor', $request->input('name.firstname'));
+        $this->assertSame('otwell', $request->input('name.lastname'));
+        $data = $request->json()->all();
+        $this->assertEquals($payload, $data);
+    }
+
     public function testJSONEmulatingPHPBuiltInServer()
     {
         $payload = ['name' => 'taylor'];
